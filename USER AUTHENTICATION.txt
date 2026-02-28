@@ -1,0 +1,35 @@
+const express = require("express");
+const session = require("express-session");
+const app = express();
+
+// Middleware to handle sessions
+app.use(session({
+  secret: "supersecretkey",
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, secure: false, maxAge: 1000 * 60 * 30 } // 30 min
+}));
+
+// Fake login route
+app.post("/login", (req, res) => {
+  // Normally you'd check username/password here
+  req.session.userId = 42; // Store user ID in the session
+  res.send("Logged in!");
+});
+
+// Protected route
+app.get("/dashboard", (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).send("Not authenticated");
+  }
+  res.send("Welcome to your dashboard!");
+});
+
+// Logout
+app.post("/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.send("Logged out!");
+  });
+});
+
+app.listen(3000, () => console.log("Server running on port 3000"));
